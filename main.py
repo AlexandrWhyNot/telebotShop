@@ -20,6 +20,7 @@ ves_d = dict()
 solo = list()
 streat = list()
 ban = list()
+ph = ""
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
@@ -171,7 +172,7 @@ def funct(all_req):
         st = all_req.data
         con1 = sqlite3.connect("DataBase.db")
         cur = con1.cursor()
-        cur.execute("SELECT price FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?)",[countrys, ts, int(ves), st])
+        cur.execute("SELECT DISTINCT price FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?)",[countrys, ts, int(ves), st])
         datadb = list(cur)
         for row in datadb:
                 solo.append(row[const.const])
@@ -186,20 +187,118 @@ def funct(all_req):
         bot.edit_message_text(chat_id=cid, message_id=mid, text="Отлично, что мы имеем? Ты выбрал город - {} на районе {} и по весу  {} будет {}грамм . Тебе нужно заплатить {}грн. Готов повеселится?".format(countrys, st, ts, ves, pr), reply_markup=markup)
 
 
+@bot.callback_query_handler(func=lambda yets: yets.data == "price")
+def somfunk(yets):
+        cid = yets.message.chat.id
+        mid = yets.message.message_id
+        markup = types.InlineKeyboardMarkup() 
+        bby = types.InlineKeyboardButton(text="Отправить на проверку", callback_data="check")
+        oo = types.InlineKeyboardButton(text="EasyPay - 95436138", url="https://easypay.ua/ua/catalog/e-money/easypay/easypay-money-deposit?account=95436138")
+        markup.add(oo)
+        markup.add(bby)
+        bot.edit_message_text(chat_id=cid, message_id=mid,text="После перехода на сайт для оплаты, не забудте нажать кнопку 'Отправить на проверку!'На все у тебя есть 35 минут. если ты не успеешь или введешь не не правильно - получишь бан. 3 бана - ЧС.", reply_markup=markup)
+
+
+
 server_data = "22.04.2019 13:18"
 server_sum = "100"
-@bot.callback_query_handler(func=lambda okbuy: okbuy.data == "price")
+serv_d = server_data + server_sum
+@bot.callback_query_handler(func=lambda okbuy: okbuy.data == "check")
 def ff(okbuy):
-        bot.reply_to(okbuy.from_user.first_name, text="Введи день, месяц и год отплаты. Пробел часы минуты! Потом через пробел сумму которую заплатил. Пример XX.XX.XX XX:XX xxx")       
+        cid = okbuy.message.chat.id
+        mid = okbuy.message.message_id
+        bot.edit_message_text(chat_id=cid, message_id=mid, text="Введи день, месяц и год отплаты. Пробел часы минуты! Потом через пробел сумму которую заплатил. Пример XX.XX.XX XX:XX xxx")       
 
 
 @bot.message_handler(content_types=['text'])
 def price_streat(price):
-        print(price)
-        print(type(price))
-        #       
-        # time.sleep(6)
-        # bot.send_message(parse.from_user.id, text="Считаю")
+        cid = price.chat.id
+        mid = price.message_id
+        countrys = city[price.from_user.first_name] 
+        ts = tovar_d[price.from_user.first_name]
+        ves =  ves_d[price.from_user.first_name]
+        st = streat[-1]
+        so = solo[-1]
+        con1 = sqlite3.connect("DataBase.db")
+        cur = con1.cursor()
+        cur.execute("SELECT DISTINCT * FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?) AND price = (?)",[countrys, ts, int(ves), st, so])
+        datadb = list(cur)
+        counterc = 0
+        cr = list()
+        for row in datadb:
+                solo.append(row[counterc])
+                cr.append(row[counterc])
+                counterc = counterc + 1
+        cur.execute("SELECT DISTINCT photo FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?) AND price = (?)",[countrys, ts, int(ves), st, so])
+        datadb = list(cur)
+        for row in datadb:
+                ph = row[const.const]
+        print(ph)
+        con1.commit()
+        cur.close()
+        con1.close()
+        msg = ""
+        if(serv_d == price.text):
+                print(serv_d)
+                print(type(serv_d))
+                bot.edit_message_text(chat_id=cid, message_id=mid, text="Хорошо, скидую ссылку на фото месторасположения!")
+                time.sleep(3)
+                msg = bot.edit_message_text(chat_id=cid, message_id=mid, text="Ссылка отправлена. Не забудте ее сохранить!" + ph)
+                conn = sqlite3.connect("DataBase.db")
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM stock WHERE photo = (?)",[ph])
+                conn.commit()
+                cursor.close()
+                conn.close()
+                ok = "end"
+                baaaan(ok)
+        else:
+                bot.register_next_step_handler(msg, "У тебя что то пошло не так. Попробуй еще раз!", moreOne)
+
+def moreOne(message):
+        chat_id = message.chat.id
+        
+        if(serv_d == message.text):
+                print(serv_d)
+                print(type(serv_d))
+                bot.send_message(chat_id, text="Хорошо, скидую ссылку на фото месторасположения!")
+                time.sleep(3)
+                bot.send_message(chat_id, text="Ссылка отправлена. Не забудте ее сохранить!" + ph)
+                conn = sqlite3.connect("DataBase.db")
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM stock WHERE photo = (?)",[ph])
+                conn.commit()
+                cursor.close()
+                conn.close()
+                ok = "end"
+                baaaan(ok)
+        else:
+                if ban[message.from_user.first_name] == 0:
+                        bot.send_message(chat_id, text="У тебя 1 замечание. 3 замечания - БАН")
+                        ban[message.from_user.first_name] = 1
+                elif ban[message.from_user.first_name] == 1:
+                        bot.send_message(chat_id, text="У тебя 2 замечание. 3 замечания - БАН")
+                        ban[message.from_user.first_name] = 2
+                elif ban[message.from_user.first_name] == 2:
+                        bot.send_message(chat_id, text="У тебя 3 замечание. 3 замечания - БАН")
+                        ban[message.from_user.first_name] = 3
+                        notok = "sad"
+                        baaaan(notok)
+                elif ban[message.from_user.first_name] == 3:
+                        bot.send_message(chat_id, text="У тебя 3 замечание. 3 замечания - БАН")
+                        notok = "sad"
+                        baaaan(notok)
+
+                
+def baaaan(m):
+        chat_id = m.chat.id
+        if m == "end":
+                pass
+        if m == "sad":
+                bot.edit_message_text(chat_id, "Ты получил 3 бана. Давай ДО свидания!")
+
+
+
         
         # city.clear()
         # tovar_d.clear()
