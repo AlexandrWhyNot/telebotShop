@@ -24,26 +24,35 @@ streat = list()
 my_streat = dict()
 
 
+
+
 @bot.message_handler(commands=['start'])
 def start_message(message):
-        city.clear()
-        tovar_d.clear()
-        ves_d.clear()
-        solo.clear()
-        ph.clear()
-        del streat[:]
-        my_streat.clear()
-        print(ban)
-        if(message.from_user.first_name in ban) and (ban[message.from_user.first_name] == 3):
-                baaaan("sad")
-        else:                
-                name = message.from_user.first_name
-                markup = types.InlineKeyboardMarkup()
-                button1 = types.InlineKeyboardButton(text="Львов", callback_data="Львов")
-                button2 = types.InlineKeyboardButton(text="Киев", callback_data="Киев")
-                button3 = types.InlineKeyboardButton(text="Одесса", callback_data="Одесса")
-                markup.add(button1, button2, button3)
-                bot.send_message(message.chat.id, text = "Привет, " + str(name) + ", Добро пожаловать в наш Добро🆂🅷🅾️🅿️. Есть все что тебе нужно, осталось только подумать чего желаешь! Выберите город, и действия далие.", reply_markup=markup)
+        iddd = str(message.from_user.id)
+        with open("ban.txt") as file:
+                datafile = file.readlines()
+        if iddd in datafile:
+                bot.send_message(message.chat.id, text="Друг, у тебя Бан! Сам виноват.")
+                m = str(message.from_user.id)
+                baaaan(m, m)
+        else:
+                city.clear()
+                tovar_d.clear()
+                ves_d.clear()
+                solo.clear()
+                ph.clear()
+                del streat[:]
+                my_streat.clear()
+                if(message.from_user.first_name in ban) and (ban[message.from_user.first_name] == 3):
+                        baaaan("sad")
+                else:                
+                        name = message.from_user.first_name
+                        markup = types.InlineKeyboardMarkup()
+                        button1 = types.InlineKeyboardButton(text="Львов", callback_data="Львов")
+                        button2 = types.InlineKeyboardButton(text="Киев", callback_data="Киев")
+                        button3 = types.InlineKeyboardButton(text="Одесса", callback_data="Одесса")
+                        markup.add(button1, button2, button3)
+                        bot.send_message(message.chat.id, text = "Привет, " + str(name) + ", Добро пожаловать в наш Добро🆂🅷🅾️🅿️. Есть все что тебе нужно, осталось только подумать чего желаешь! Выберите город, и действия далие.", reply_markup=markup)
         
         
 
@@ -78,7 +87,6 @@ def inline(c):
 def positions(call):
         cid = call.message.chat.id
         mid = call.message.message_id
-
         if call.data == "back2":
                 keyboardmenu2 = types.InlineKeyboardMarkup(row_width=2)
                 b11 = types.InlineKeyboardButton(text="Фелормония", callback_data="Фелормония")
@@ -218,12 +226,13 @@ serv_d = server_data + server_sum
 def ff(okbuy):
         cid = okbuy.message.chat.id
         mid = okbuy.message.message_id
-        bot.edit_message_text(chat_id=cid, message_id=mid, text="Введи день, месяц и год отплаты. Пробел часы минуты! Потом через пробел сумму которую заплатил. Пример XX.XX.XX XX:XX xxx")
-        time.sleep(2)     
+        bot.edit_message_text(chat_id=cid, message_id=mid, text="Введи день, месяц и год отплаты. Пробел часы минуты! Потом через пробел сумму которую заплатил. Пример XX.XX.XX XX:XX xxx (12.03.2019 13:20 100), и ждите в тичение 1 мин!")
+        #time.sleep(60)     
 
 
 @bot.message_handler(content_types=['text'])
 def price_streat(price):
+        mid = price.message_id
         cid = price.chat.id
         countrys = city[price.from_user.first_name] 
         ts = tovar_d[price.from_user.first_name]
@@ -239,7 +248,6 @@ def price_streat(price):
         con1.commit()
         cur.close()
         con1.close()
-        print(ph[price.from_user.first_name])
         if(serv_d == price.text):
                 bot.send_message(chat_id=cid, text="Хорошо, скидую ссылку на фото месторасположения!")
                 bot.send_message(chat_id=cid, text="Ссылка отправлена. Не забудте ее сохранить!" + ph[price.from_user.first_name])
@@ -250,36 +258,36 @@ def price_streat(price):
                 conn33.commit()
                 cursor.close()
                 conn33.close()
+                bot.edit_message_text(chat_id=cid, message_id=mid, text="Для продолжения введите команду /start")
         else:   
                 if price.from_user.first_name not in ban: 
-                        bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 1 замечание. 3 замечания - БАН")
+                        bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 1 замечание. 3 замечания - БАН. Для продолжения введите команду /start.")
                         ban[price.from_user.first_name] = 1
-                        print(ban)
                 elif ban[price.from_user.first_name] == 1:
-                        bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 2 замечание. 3 замечания - БАН")
+                        bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 2 замечание. 3 замечания - БАН. Для продолжения введите команду /start.")
                         ban[price.from_user.first_name] = 2
                 elif ban[price.from_user.first_name] == 2:
                         ban[price.from_user.first_name] = 3
+                        bot.send_message(chat_id=cid, text="Ты получил БАН. Давай ДО свидания!")
                         notok = "sad"
-                        baaaan(notok)
+                        ii = price.from_user.id
+                        baaaan(notok, ii)
                 elif ban[price.from_user.first_name] == 3:
+                        bot.send_message(chat_id=cid, text="Ты получил БАН. Давай ДО свидания!")
                         notok = "sad"
-                        baaaan(notok)
+                        ii = price.from_user.id
+                        baaaan(notok, ii)
+
 
                 
-def baaaan(m):
-        if m == "end":
+def baaaan(m, iddd = None):
+        if(m == "start"):
                 pass
-        if m == "sad":
-                bot.edit_message_text(m.from_user.first_name, "Ты получил БАН. Давай ДО свидания!")
-                
+        id_num = str(iddd)  
+        with open("ban.txt", "w") as file:
+                file.writelines(id_num)
 
                 
-
-
-
-  
-if __name__ == "__main__":
-        bot.polling(none_stop=True, interval=0)
-                
+while True:
+    bot.polling(none_stop=True, interval=0)  
         
