@@ -34,13 +34,16 @@ def start_message(message):
         del streat[:]
         my_streat.clear()
         print(ban)
-        name = message.from_user.first_name
-        markup = types.InlineKeyboardMarkup()
-        button1 = types.InlineKeyboardButton(text="Львов", callback_data="Львов")
-        button2 = types.InlineKeyboardButton(text="Киев", callback_data="Киев")
-        button3 = types.InlineKeyboardButton(text="Одесса", callback_data="Одесса")
-        markup.add(button1, button2, button3)
-        bot.send_message(message.chat.id, text = "Привет, " + str(name) + ", Добро пожаловать в наш Добро🆂🅷🅾️🅿️. Есть все что тебе нужно, осталось только подумать чего желаешь! Выберите город, и действия далие.", reply_markup=markup)
+        if(message.from_user.first_name in ban) and (ban[message.from_user.first_name] == 3):
+                baaaan("sad")
+        else:                
+                name = message.from_user.first_name
+                markup = types.InlineKeyboardMarkup()
+                button1 = types.InlineKeyboardButton(text="Львов", callback_data="Львов")
+                button2 = types.InlineKeyboardButton(text="Киев", callback_data="Киев")
+                button3 = types.InlineKeyboardButton(text="Одесса", callback_data="Одесса")
+                markup.add(button1, button2, button3)
+                bot.send_message(message.chat.id, text = "Привет, " + str(name) + ", Добро пожаловать в наш Добро🆂🅷🅾️🅿️. Есть все что тебе нужно, осталось только подумать чего желаешь! Выберите город, и действия далие.", reply_markup=markup)
         
         
 
@@ -239,18 +242,15 @@ def price_streat(price):
         print(ph[price.from_user.first_name])
         if(serv_d == price.text):
                 bot.send_message(chat_id=cid, text="Хорошо, скидую ссылку на фото месторасположения!")
-                time.sleep(3)
                 bot.send_message(chat_id=cid, text="Ссылка отправлена. Не забудте ее сохранить!" + ph[price.from_user.first_name])
-                conn = sqlite3.connect("DataBase.db")
+                conn33 = sqlite3.connect("DataBase.db")
                 delliting = ph[price.from_user.first_name]
-                cursor = conn.cursor()
+                cursor = conn33.cursor()
                 cursor.execute("DELETE FROM stock WHERE photo = (?)",[delliting])
-                conn.commit()
+                conn33.commit()
                 cursor.close()
-                conn.close()
-                ok = "end"
-                baaaan(ok)
-        else:
+                conn33.close()
+        else:   
                 if price.from_user.first_name not in ban: 
                         bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 1 замечание. 3 замечания - БАН")
                         ban[price.from_user.first_name] = 1
@@ -272,6 +272,8 @@ def baaaan(m):
                 pass
         if m == "sad":
                 bot.edit_message_text(m.from_user.first_name, "Ты получил БАН. Давай ДО свидания!")
+                
+
                 
 
 
