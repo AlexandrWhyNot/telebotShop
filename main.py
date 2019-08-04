@@ -17,14 +17,23 @@ bot = telebot.TeleBot(const.token_bot)
 city = dict()
 tovar_d = dict()
 ves_d = dict()
-solo = list()
+solo = dict()
+ban = dict()
+ph = dict()
 streat = list()
-ban = list()
-ph = ""
+my_streat = dict()
+
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-        
+        city.clear()
+        tovar_d.clear()
+        ves_d.clear()
+        solo.clear()
+        ph.clear()
+        del streat[:]
+        my_streat.clear()
+        print(ban)
         name = message.from_user.first_name
         markup = types.InlineKeyboardMarkup()
         button1 = types.InlineKeyboardButton(text="Львов", callback_data="Львов")
@@ -141,8 +150,6 @@ def ves_end(ves):
                 pass
         cid = ves.message.chat.id
         mid = ves.message.message_id 
-       
-     
         region.append(ves.data) 
         ve =  ves_d[ves.from_user.first_name]
         con = sqlite3.connect("DataBase.db")
@@ -152,7 +159,8 @@ def ves_end(ves):
         markup = types.InlineKeyboardMarkup()  
         for row in datadb:
                 a = types.InlineKeyboardButton(text=row[const.const], callback_data=row[const.const]) 
-                streat.append(row[const.const])
+                str(row[const.const])
+                streat.append(str(row[const.const]))
                 markup.add(a) 
         back4 = types.InlineKeyboardButton(text="Назад", callback_data="back4")
         markup.add(back4)
@@ -164,6 +172,7 @@ def ves_end(ves):
 
 @bot.callback_query_handler(func=lambda all_req: all_req.data in streat)
 def funct(all_req):
+        my_streat[all_req.from_user.first_name] = all_req.data
         cid = all_req.message.chat.id
         mid = all_req.message.message_id
         countrys = city[all_req.from_user.first_name] 
@@ -175,8 +184,7 @@ def funct(all_req):
         cur.execute("SELECT DISTINCT price FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?)",[countrys, ts, int(ves), st])
         datadb = list(cur)
         for row in datadb:
-                solo.append(row[const.const])
-                pr = row[const.const]
+                solo[all_req.from_user.first_name] = row[const.const]
         markup = types.InlineKeyboardMarkup()
         back = types.InlineKeyboardButton(text="Отмена", callback_data="mainmanu")
         buy = types.InlineKeyboardButton(text="Оплатить", callback_data="price")
@@ -184,7 +192,7 @@ def funct(all_req):
         con1.commit()
         cur.close()
         con1.close()
-        bot.edit_message_text(chat_id=cid, message_id=mid, text="Отлично, что мы имеем? Ты выбрал город - {} на районе {} и по весу  {} будет {}грамм . Тебе нужно заплатить {}грн. Готов повеселится?".format(countrys, st, ts, ves, pr), reply_markup=markup)
+        bot.edit_message_text(chat_id=cid, message_id=mid, text="Отлично, что мы имеем? Ты выбрал город - {} на районе {} и по весу  {} будет {}грамм . Тебе нужно заплатить {}грн. Готов повеселится?".format(countrys, st, ts, ves, solo[all_req.from_user.first_name]), reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda yets: yets.data == "price")
@@ -200,111 +208,71 @@ def somfunk(yets):
 
 
 
-server_data = "22.04.2019 13:18"
+server_data = "22.04.2019 13:18 "
 server_sum = "100"
 serv_d = server_data + server_sum
 @bot.callback_query_handler(func=lambda okbuy: okbuy.data == "check")
 def ff(okbuy):
         cid = okbuy.message.chat.id
         mid = okbuy.message.message_id
-        bot.edit_message_text(chat_id=cid, message_id=mid, text="Введи день, месяц и год отплаты. Пробел часы минуты! Потом через пробел сумму которую заплатил. Пример XX.XX.XX XX:XX xxx")       
+        bot.edit_message_text(chat_id=cid, message_id=mid, text="Введи день, месяц и год отплаты. Пробел часы минуты! Потом через пробел сумму которую заплатил. Пример XX.XX.XX XX:XX xxx")
+        time.sleep(2)     
 
 
 @bot.message_handler(content_types=['text'])
 def price_streat(price):
         cid = price.chat.id
-        mid = price.message_id
         countrys = city[price.from_user.first_name] 
         ts = tovar_d[price.from_user.first_name]
         ves =  ves_d[price.from_user.first_name]
-        st = streat[-1]
-        so = solo[-1]
+        st = my_streat[price.from_user.first_name]
+        so = solo[price.from_user.first_name]
         con1 = sqlite3.connect("DataBase.db")
         cur = con1.cursor()
-        cur.execute("SELECT DISTINCT * FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?) AND price = (?)",[countrys, ts, int(ves), st, so])
-        datadb = list(cur)
-        counterc = 0
-        cr = list()
-        for row in datadb:
-                solo.append(row[counterc])
-                cr.append(row[counterc])
-                counterc = counterc + 1
         cur.execute("SELECT DISTINCT photo FROM stock WHERE city = (?) AND name_stock = (?) AND much = (?) AND streat = (?) AND price = (?)",[countrys, ts, int(ves), st, so])
         datadb = list(cur)
         for row in datadb:
-                ph = row[const.const]
-        print(ph)
+                ph[price.from_user.first_name] = row[const.const]
         con1.commit()
         cur.close()
         con1.close()
-        msg = ""
+        print(ph[price.from_user.first_name])
         if(serv_d == price.text):
-                print(serv_d)
-                print(type(serv_d))
-                bot.edit_message_text(chat_id=cid, message_id=mid, text="Хорошо, скидую ссылку на фото месторасположения!")
+                bot.send_message(chat_id=cid, text="Хорошо, скидую ссылку на фото месторасположения!")
                 time.sleep(3)
-                msg = bot.edit_message_text(chat_id=cid, message_id=mid, text="Ссылка отправлена. Не забудте ее сохранить!" + ph)
+                bot.send_message(chat_id=cid, text="Ссылка отправлена. Не забудте ее сохранить!" + ph[price.from_user.first_name])
                 conn = sqlite3.connect("DataBase.db")
+                delliting = ph[price.from_user.first_name]
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM stock WHERE photo = (?)",[ph])
+                cursor.execute("DELETE FROM stock WHERE photo = (?)",[delliting])
                 conn.commit()
                 cursor.close()
                 conn.close()
                 ok = "end"
                 baaaan(ok)
         else:
-                bot.register_next_step_handler(msg, "У тебя что то пошло не так. Попробуй еще раз!", moreOne)
-
-def moreOne(message):
-        chat_id = message.chat.id
-        
-        if(serv_d == message.text):
-                print(serv_d)
-                print(type(serv_d))
-                bot.send_message(chat_id, text="Хорошо, скидую ссылку на фото месторасположения!")
-                time.sleep(3)
-                bot.send_message(chat_id, text="Ссылка отправлена. Не забудте ее сохранить!" + ph)
-                conn = sqlite3.connect("DataBase.db")
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM stock WHERE photo = (?)",[ph])
-                conn.commit()
-                cursor.close()
-                conn.close()
-                ok = "end"
-                baaaan(ok)
-        else:
-                if ban[message.from_user.first_name] == 0:
-                        bot.send_message(chat_id, text="У тебя 1 замечание. 3 замечания - БАН")
-                        ban[message.from_user.first_name] = 1
-                elif ban[message.from_user.first_name] == 1:
-                        bot.send_message(chat_id, text="У тебя 2 замечание. 3 замечания - БАН")
-                        ban[message.from_user.first_name] = 2
-                elif ban[message.from_user.first_name] == 2:
-                        bot.send_message(chat_id, text="У тебя 3 замечание. 3 замечания - БАН")
-                        ban[message.from_user.first_name] = 3
+                if price.from_user.first_name not in ban: 
+                        bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 1 замечание. 3 замечания - БАН")
+                        ban[price.from_user.first_name] = 1
+                        print(ban)
+                elif ban[price.from_user.first_name] == 1:
+                        bot.send_message(chat_id=cid, text="Кто то пытается наебать, получай замечание! У тебя 2 замечание. 3 замечания - БАН")
+                        ban[price.from_user.first_name] = 2
+                elif ban[price.from_user.first_name] == 2:
+                        ban[price.from_user.first_name] = 3
                         notok = "sad"
                         baaaan(notok)
-                elif ban[message.from_user.first_name] == 3:
-                        bot.send_message(chat_id, text="У тебя 3 замечание. 3 замечания - БАН")
+                elif ban[price.from_user.first_name] == 3:
                         notok = "sad"
                         baaaan(notok)
 
                 
 def baaaan(m):
-        chat_id = m.chat.id
         if m == "end":
                 pass
         if m == "sad":
-                bot.edit_message_text(chat_id, "Ты получил 3 бана. Давай ДО свидания!")
-
-
-
-        
-        # city.clear()
-        # tovar_d.clear()
-        # ves_d.clear()
-        # solo.clear()
-        #del streat[:]
+                bot.edit_message_text(m.from_user.first_name, "Ты получил БАН. Давай ДО свидания!")
+                
 
 
 
